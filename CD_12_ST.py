@@ -4,6 +4,18 @@ import time
 import pandas as pd
 from PIL import Image
 
+# Contraseña predefinida
+correct_password = "103_records"
+
+# Pantalla de inicio con la solicitud de contraseña
+password = st.text_input("Por favor, ingresa la contraseña:", type="password")
+
+# Si la contraseña es incorrecta, no deja acceder a la app
+if password != correct_password:
+    st.warning("Contraseña incorrecta. Acceso denegado.")
+    st.stop()  # Detiene la ejecución del programa si la contraseña es incorrecta
+
+# Si la contraseña es correcta, continuamos con el resto de la aplicación
 st.set_page_config(page_title="Discogs Finder", page_icon="☠️", layout="centered")
 
 # Logo
