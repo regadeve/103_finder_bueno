@@ -44,7 +44,7 @@ TOKEN = 'eGLWhqoSvHtraoWvsAMeHBGmlIJlEcRFxMSnZFoS'
 HEADERS = {'User-Agent': 'RareCDsApp/1.0'}
 SEARCH_URL = 'https://api.discogs.com/database/search'
 GENRES = ["Electronic", "Rock", "Jazz", "Funk / Soul", "Hip Hop", "Pop", "Classical", "Reggae", "Blues", "Latin"]
-STYLES = ["Electro", "Techno", "House", "Ambient", "Breakbeat", "IDM", "Dubstep", "Trance", "Drum n Bass", "EBM", "Minimal", "Synth-pop", "New Beat","Experimental","Progressive House","Progressive Trance","Dub"]
+STYLES = ["Electro", "Techno", "House", "Ambient", "Breakbeat", "IDM", "Dubstep", "Trance", "Drum n Bass", "EBM", "Minimal", "Synth-pop", "New Beat","Experimental","Progressive House","Progressive Trance","Dub","New Wave"]
 
 # Filtros
 st.markdown("<h4 style='color: #1DB954;'>⚙️ Filtros de búsqueda</h4>", unsafe_allow_html=True)
