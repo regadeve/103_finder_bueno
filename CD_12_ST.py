@@ -4,6 +4,9 @@ import time
 import pandas as pd
 from PIL import Image
 
+# Primero, coloca la configuración de la página
+st.set_page_config(page_title="Discogs Finder", page_icon="☠️", layout="centered")
+
 # Contraseña predefinida
 correct_password = "103_records"
 
@@ -16,8 +19,6 @@ if password != correct_password:
     st.stop()  # Detiene la ejecución del programa si la contraseña es incorrecta
 
 # Si la contraseña es correcta, continuamos con el resto de la aplicación
-st.set_page_config(page_title="Discogs Finder", page_icon="☠️", layout="centered")
-
 # Logo
 try:
     logo = Image.open("logo.png")
