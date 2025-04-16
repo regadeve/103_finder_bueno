@@ -4,21 +4,16 @@ import time
 import pandas as pd
 from PIL import Image
 
-# Primero, coloca la configuración de la página
+# Configuración de la página
 st.set_page_config(page_title="Discogs Finder", page_icon="☠️", layout="centered")
 
-# Contraseña predefinida
+# Contraseña
 correct_password = "103_records"
-
-# Pantalla de inicio con la solicitud de contraseña
 password = st.text_input("Por favor, ingresa la contraseña:", type="password")
-
-# Si la contraseña es incorrecta, no deja acceder a la app
 if password != correct_password:
     st.warning("Contraseña incorrecta. Acceso denegado.")
-    st.stop()  # Detiene la ejecución del programa si la contraseña es incorrecta
+    st.stop()
 
-# Si la contraseña es correcta, continuamos con el resto de la aplicación
 # Logo
 try:
     logo = Image.open("logo.png")
@@ -26,17 +21,11 @@ try:
 except FileNotFoundError:
     st.warning("Logo no encontrado. Asegúrate de que el archivo 'logo.png' esté en la carpeta.")
 
-# Título
+# Título y descripción
 st.markdown("<h1 style='text-align: center; color: white; font-size: 90%;'>☠️ Congratulations you have found the RARE GEMS finder developed by the 103 ...</h1>", unsafe_allow_html=True)
-
-# Descripción
-st.markdown(
-    """
-    <div style='text-align: center; font-size: 18px; color: #ccc;'>You are entering the depths of the Discogs archive...<br>Seek out hidden relics, obscure editions, and long-lost sonic treasures.<br><br>Only the truly curious will discover the rarest gems. 🕵️‍♂️</div>
-    """,
-    unsafe_allow_html=True
-)
-
+st.markdown("""
+<div style='text-align: center; font-size: 18px; color: #ccc;'>You are entering the depths of the Discogs archive...<br>Seek out hidden relics, obscure editions, and long-lost sonic treasures.<br><br>Only the truly curious will discover the rarest gems. 🕵️‍♂️</div>
+""", unsafe_allow_html=True)
 st.markdown("---")
 
 # Constantes
@@ -44,14 +33,14 @@ TOKEN = 'eGLWhqoSvHtraoWvsAMeHBGmlIJlEcRFxMSnZFoS'
 HEADERS = {'User-Agent': 'RareCDsApp/1.0'}
 SEARCH_URL = 'https://api.discogs.com/database/search'
 GENRES = ["Electronic", "Rock", "Jazz", "Funk / Soul", "Hip Hop", "Pop", "Classical", "Reggae", "Blues", "Latin"]
-STYLES = ["Electro", "Techno", "House", "Ambient", "Breakbeat", "IDM", "Dubstep", "Trance", "Drum n Bass", "EBM", "Minimal", "Synth-pop", "New Beat","Experimental","Progressive House","Progressive Trance","Dub","New Wave"]
+STYLES = ["Electro", "Techno", "House", "Ambient", "Breakbeat", "IDM", "Dubstep", "Trance", "Drum n Bass", "EBM", "Minimal", "Synth-pop", "New Beat","Experimental","Progressive House","Progressive Trance","Dub","New Wave","Electroclash"]
 
 # Filtros
 st.markdown("<h4 style='color: #1DB954;'>⚙️ Filtros de búsqueda</h4>", unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 with col1:
     year_start = st.number_input("Año de inicio", min_value=1950, max_value=2025, value=1995)
-    year_end = st.number_input("Año de fin (opcional)", min_value=1950, max_value=2025, value=year_start)  # Año de fin opcional
+    year_end = st.number_input("Año de fin (opcional)", min_value=1950, max_value=2025, value=year_start)
     have_limit = st.number_input("Máximo número de personas que lo tengan", value=20)
 with col2:
     max_versions = st.number_input("Máximo número de versiones permitidas", value=2)
@@ -70,16 +59,14 @@ if st.button("🔍 Buscar en Discogs"):
     placeholder = st.empty()
     lista_resultados = st.container()
     contador = 0
-    max_retries = 5  # Número máximo de reintentos fallidos para un ítem
-    retries = 0  # Contador de reintentos fallidos
 
-    # Si no se ingresa un año de fin, solo usar el año de inicio
+    # Parámetros base
     if year_start == year_end:
         params = {
             'token': TOKEN,
             'per_page': 100,
             'page': 1,
-            'year': str(year_start),  # Solo el año de inicio
+            'year': str(year_start),
             'sort': 'title',
             'sort_order': 'asc'
         }
@@ -88,7 +75,7 @@ if st.button("🔍 Buscar en Discogs"):
             'token': TOKEN,
             'per_page': 100,
             'page': 1,
-            'year': f"{year_start}-{year_end}",  # Rango de años
+            'year': f"{year_start}-{year_end}",
             'sort': 'title',
             'sort_order': 'asc'
         }
@@ -108,31 +95,31 @@ if st.button("🔍 Buscar en Discogs"):
         response = requests.get(SEARCH_URL, headers=HEADERS, params=params)
         response.raise_for_status()
         data = response.json()
-        total_pages = data['pagination']['pages']  # Sin límite de páginas
+        total_pages = data['pagination']['pages']
     except Exception as e:
         st.error(f"❌ Error en la búsqueda del año {year_start} a {year_end}: {e}")
         st.stop()
 
-    # Crear una barra de progreso
     progress_bar = st.progress(0)
 
     with st.spinner(f"Procesando resultados de {year_start} a {year_end}..."):
         for page in range(1, total_pages + 1):
+            st.write(f"🔄 Procesando página {page} de {total_pages}")
             params['page'] = page
             try:
-                res = requests.get(SEARCH_URL, headers=HEADERS, params=params, timeout=10)  # Timeout de 10 segundos
+                res = requests.get(SEARCH_URL, headers=HEADERS, params=params, timeout=10)
                 res.raise_for_status()
-
                 items = res.json().get('results', [])
             except requests.exceptions.RequestException as e:
-                st.warning(f"⚠️ Error en la página {page}: {e}, saltando...")
-                continue  # Saltamos esta página y seguimos con la siguiente
+                st.warning(f"⚠️ Error en la página {page}: {e}, reintentando tras 5 segundos...")
+                time.sleep(5)
+                continue
             except ValueError:
-                st.warning(f"⚠️ Respuesta no válida de la página {page}, continuando con la siguiente...")
-                continue  # Saltamos esta página y seguimos con la siguiente
+                st.warning(f"⚠️ Respuesta no válida de la página {page}, continuando...")
+                continue
             except Exception as e:
                 st.warning(f"⚠️ Error inesperado en la página {page}: {e}, continuando...")
-                continue  # Saltamos esta página y seguimos con la siguiente
+                continue
 
             for item in items:
                 resource_url = item.get("resource_url")
@@ -142,7 +129,6 @@ if st.button("🔍 Buscar en Discogs"):
                 try:
                     details = requests.get(resource_url, headers=HEADERS, timeout=10).json()
 
-                    # Si la respuesta está vacía, seguimos con el siguiente ítem
                     if not details:
                         st.warning(f"⚠️ Detalles vacíos para el ítem {item['title']}, saltando...")
                         continue
@@ -156,7 +142,7 @@ if st.button("🔍 Buscar en Discogs"):
                         continue
 
                     release_styles = details.get('styles', [])
-                    if styles and not all(s in release_styles for s in styles):  # Aquí comparamos si todos los estilos están presentes
+                    if styles and not all(s in release_styles for s in styles):
                         continue
 
                     master_id = details.get('master_id')
@@ -202,13 +188,12 @@ if st.button("🔍 Buscar en Discogs"):
                         </div>
                         ''', unsafe_allow_html=True)
 
-                    # Actualizamos la barra de progreso después de procesar cada ítem
-                    progress_bar.progress(contador / len(items))
-
                 except Exception as e:
                     st.warning(f"⚠️ Error al obtener detalles del ítem: {e}, esperando 1 minuto antes de continuar...")
-                    time.sleep(60)  # Esperar 1 minuto antes de continuar
-                    continue  # Saltamos este ítem y seguimos con el siguiente
+                    time.sleep(60)
+                    continue
+
+            progress_bar.progress(page / total_pages)
 
         st.markdown("---")
         if resultados:
