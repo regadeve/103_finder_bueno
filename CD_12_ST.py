@@ -50,6 +50,8 @@ format_selected = st.selectbox("Formato", ["Todos", "CD", "Vinyl"])
 type_selected = st.selectbox("Tipo de búsqueda", ["release", "master", "Todos"])
 genres = st.multiselect("Géneros", GENRES)
 styles = st.multiselect("Estilos", STYLES)
+strict_genre = st.checkbox("🎯 Solo mostrar resultados que tengan **exclusivamente** estos géneros")
+strict_style = st.checkbox("🎯 Solo mostrar resultados que tengan **exclusivamente** estos estilos")
 
 # Búsqueda
 if st.button("🔍 Buscar en Discogs"):
@@ -114,9 +116,6 @@ if st.button("🔍 Buscar en Discogs"):
                 st.warning(f"⚠️ Error en la página {page}: {e}, reintentando tras 5 segundos...")
                 time.sleep(5)
                 continue
-            except ValueError:
-                st.warning(f"⚠️ Respuesta no válida de la página {page}, continuando...")
-                continue
             except Exception as e:
                 st.warning(f"⚠️ Error inesperado en la página {page}: {e}, continuando...")
                 continue
@@ -128,9 +127,7 @@ if st.button("🔍 Buscar en Discogs"):
                 time.sleep(1.2)
                 try:
                     details = requests.get(resource_url, headers=HEADERS, timeout=10).json()
-
                     if not details:
-                        st.warning(f"⚠️ Detalles vacíos para el ítem {item['title']}, saltando...")
                         continue
 
                     have = details.get('community', {}).get('have', 9999)
@@ -142,7 +139,18 @@ if st.button("🔍 Buscar en Discogs"):
                         continue
 
                     release_styles = details.get('styles', [])
+                    release_genres = details.get('genres', [])
+
+                    # Filtro por estilos (todos los seleccionados deben estar presentes)
                     if styles and not all(s in release_styles for s in styles):
+                        continue
+
+                    # Filtro estricto de estilos
+                    if strict_style and set(release_styles) != set(styles):
+                        continue
+
+                    # Filtro estricto de géneros
+                    if strict_genre and set(release_genres) != set(genres):
                         continue
 
                     master_id = details.get('master_id')
@@ -164,8 +172,8 @@ if st.button("🔍 Buscar en Discogs"):
                         "Artista": details.get('artists_sort'),
                         "Año": release_year,
                         "Have": have,
-                        "Géneros": ", ".join(details.get('genres', [])),
-                        "Estilos": ", ".join(details.get('styles', [])),
+                        "Géneros": ", ".join(release_genres),
+                        "Estilos": ", ".join(release_styles),
                         "Enlace": details.get('uri'),
                         "Imagen": item.get("thumb", "")
                     }
