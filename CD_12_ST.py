@@ -28,12 +28,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.markdown("---")
 
+# Inicializar estado
+if 'resultados' not in st.session_state:
+    st.session_state.resultados = []
+
 # Constantes
 TOKEN = 'eGLWhqoSvHtraoWvsAMeHBGmlIJlEcRFxMSnZFoS'
 HEADERS = {'User-Agent': 'RareCDsApp/1.0'}
 SEARCH_URL = 'https://api.discogs.com/database/search'
 GENRES = ["Electronic", "Rock", "Jazz", "Funk / Soul", "Hip Hop", "Pop", "Classical", "Reggae", "Blues", "Latin"]
-STYLES = ["Electro","Industrial","Acid House","Abstract","Goa Trance","Tech House", "Techno", "House", "Ambient", "Breakbeat", "IDM", "Dubstep", "Trance", "Drum n Bass", "EBM", "Minimal", "Synth-pop", "New Beat","Experimental","Progressive House","Progressive Trance","Dub","New Wave","Electroclash"]
+STYLES = ["Electro","Industrial","Acid House","Abstract","Goa Trance","Tech House", "Techno", "House", "Ambient", "Breakbeat", "IDM", "Dubstep", "Trance", "Drum n Bass", "EBM", "Minimal", "Synth-pop", "New Beat","Experimental","Progressive House","Progressive Trance","Dub","New Wave","Electroclash","Acid"]
 
 # Filtros
 st.markdown("<h4 style='color: #1DB954;'>⚙️ Filtros de búsqueda</h4>", unsafe_allow_html=True)
@@ -53,34 +57,26 @@ styles = st.multiselect("Estilos", STYLES)
 strict_genre = st.checkbox("🎯 Solo mostrar resultados que tengan **exclusivamente** estos géneros")
 strict_style = st.checkbox("🎯 Solo mostrar resultados que tengan **exclusivamente** estos estilos")
 
+# Botón para borrar resultados
+if st.button("🗑 Borrar resultados anteriores"):
+    st.session_state.resultados = []
+
 # Búsqueda
-if st.button("🔍 Buscar en Discogs"):
+dejar_buscar = st.button("🔍 Buscar en Discogs")
+if dejar_buscar:
     st.markdown("---")
     st.info("Buscando en Discogs... Esto puede tardar un poco")
-    resultados = []
+    st.session_state.resultados = []
     placeholder = st.empty()
     lista_resultados = st.container()
     contador = 0
 
-    # Parámetros base
-    if year_start == year_end:
-        params = {
-            'token': TOKEN,
-            'per_page': 100,
-            'page': 1,
-            'year': str(year_start),
-            'sort': 'title',
-            'sort_order': 'asc'
-        }
-    else:
-        params = {
-            'token': TOKEN,
-            'per_page': 100,
-            'page': 1,
-            'year': f"{year_start}-{year_end}",
-            'sort': 'title',
-            'sort_order': 'asc'
-        }
+    params = {
+        'token': TOKEN,
+        'per_page': 100,
+        'page': 1,
+        'year': str(year_start) if year_start == year_end else f"{year_start}-{year_end}"
+    }
 
     if type_selected != "Todos":
         params['type'] = type_selected
@@ -110,6 +106,12 @@ if st.button("🔍 Buscar en Discogs"):
             params['page'] = page
             try:
                 res = requests.get(SEARCH_URL, headers=HEADERS, params=params, timeout=10)
+
+                # 👇 Mejora 4: Manejo de rate limit
+                if res.status_code == 429:
+                    st.error("⛔ Has alcanzado el límite de peticiones por minuto de la API de Discogs. Espera unos minutos e inténtalo de nuevo.")
+                    break
+
                 res.raise_for_status()
                 items = res.json().get('results', [])
             except requests.exceptions.RequestException as e:
@@ -141,15 +143,10 @@ if st.button("🔍 Buscar en Discogs"):
                     release_styles = details.get('styles', [])
                     release_genres = details.get('genres', [])
 
-                    # Filtro por estilos (todos los seleccionados deben estar presentes)
                     if styles and not all(s in release_styles for s in styles):
                         continue
-
-                    # Filtro estricto de estilos
                     if strict_style and set(release_styles) != set(styles):
                         continue
-
-                    # Filtro estricto de géneros
                     if strict_genre and set(release_genres) != set(genres):
                         continue
 
@@ -177,7 +174,7 @@ if st.button("🔍 Buscar en Discogs"):
                         "Enlace": details.get('uri'),
                         "Imagen": item.get("thumb", "")
                     }
-                    resultados.append(cd_data)
+                    st.session_state.resultados.append(cd_data)
                     contador += 1
 
                     placeholder.markdown(
@@ -197,16 +194,15 @@ if st.button("🔍 Buscar en Discogs"):
                         ''', unsafe_allow_html=True)
 
                 except Exception as e:
-                    st.warning(f"⚠️ Error al obtener detalles del ítem: {e}, esperando 1 minuto antes de continuar...")
-                    time.sleep(60)
+                    st.warning(f"⚠️ Error al obtener detalles del ítem: {e}, saltando...")
                     continue
 
             progress_bar.progress(page / total_pages)
 
         st.markdown("---")
-        if resultados:
-            st.success(f"🎯 {len(resultados)} resultados encontrados.")
-            df = pd.DataFrame(resultados)
+        if st.session_state.resultados:
+            st.success(f"🌟 {len(st.session_state.resultados)} resultados encontrados.")
+            df = pd.DataFrame(st.session_state.resultados)
             csv = df.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="⬇️ Descargar CSV",
