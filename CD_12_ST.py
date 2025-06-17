@@ -182,7 +182,7 @@ if dejar_buscar:
     
     # Parámetros base para la búsqueda actual
     base_params = {
-        'token': TOKEN,
+        'token': user_token,
         'per_page': 100,
         'year': str(year_start) if year_start == year_end else f"{year_start}-{year_end}"
     }
