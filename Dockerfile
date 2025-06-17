@@ -12,4 +12,4 @@ FROM python:3.12.0-slim
 WORKDIR /app
 COPY --from=builder /app/.venv .venv/
 COPY . .
-CMD ["/app/.venv/bin/streamlit", "run", "CD_12_ST.py"]
+CMD ["streamlit", "run", "CD_12_ST.py", "--server.port=8501", "--server.address=0.0.0.0"]
