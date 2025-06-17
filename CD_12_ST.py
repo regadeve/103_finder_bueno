@@ -9,11 +9,17 @@ from PIL import Image
 # --- Configuración de la página ---
 st.set_page_config(page_title="Discogs Finder", page_icon="☠️", layout="centered")
 
-# --- Contraseña ---
+# --- Contraseña y API key del usuario ---
 correct_password = "103_records"
 password = st.text_input("Por favor, ingresa la contraseña:", type="password")
 if password != correct_password:
     st.warning("Contraseña incorrecta. Acceso denegado.")
+    st.stop()
+
+# --- Solicita token API personal al usuario ---
+user_token = st.text_input("Introduce tu Discogs API Token personal:", type="password")
+if not user_token:
+    st.warning("Debes introducir tu API Token para continuar.")
     st.stop()
 
 # --- Logo ---
@@ -32,14 +38,13 @@ if 'resultados' not in st.session_state:
         st.session_state.resultados = []
 
 # --- Constantes ---
-TOKEN = 'eGLWhqoSvHtraoWvsAMeHBGmlIJlEcRFxMSnZFoS'
 HEADERS = {'User-Agent': 'RareCDsApp/1.0'}
 SEARCH_URL = 'https://api.discogs.com/database/search'
 GENRES = ["Electronic", "Rock", "Jazz", "Funk / Soul", "Hip Hop", "Pop", "Classical", "Reggae", "Blues", "Latin"]
 STYLES = ["Electro","Industrial","Acid House","Abstract","Goa Trance","Tech House", "Techno", "House", "Ambient", "Breakbeat", "IDM", "Dubstep", "Trance", "Drum n Bass", "EBM", "Minimal", "Synth-pop", "New Beat","Experimental","Progressive House","Progressive Trance","Dub","New Wave","Electroclash","Acid"]
 SLEEP_TIME_DETAILS = 1.2
-GUARDAR_CADA_N = 10  # Guardar cada 10 resultados
-MAX_RETRIES = 3  # Número máximo de reintentos para solicitudes
+GUARDAR_CADA_N = 10
+MAX_RETRIES = 3
 
 # --- Filtros ---
 st.markdown("<h4 style='color: #1DB954;'>⚙️ Filtros de búsqueda</h4>", unsafe_allow_html=True)
