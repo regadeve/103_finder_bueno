@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 app = "103-finder-bueno"
 
 [build]
@@ -17,3 +18,27 @@ app = "103-finder-bueno"
   [[services.ports]]
     handlers = ["tls", "http"]
     port = 443
+=======
+# fly.toml app configuration file generated for project-3-spring-smoke-1442 on 2025-06-17T18:08:10+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'project-3-spring-smoke-1442'
+primary_region = 'lhr'
+
+[build]
+
+[http_service]
+  internal_port = 8501
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+>>>>>>> 6790198 (Actualización de la aplicación: se añadió nueva funcionalidad)
